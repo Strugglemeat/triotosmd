@@ -122,7 +122,7 @@ void game_initialize()
 0=wall
 board_width+1=wall
 */
-	for(u8 j=0;j<BOARD_HEIGHT;j++)//sides
+	for(u8 j=1;j<=BOARD_HEIGHT+1;j++)//sides
 	{
 		board[0][j]=WALL;
 		board[BOARD_WIDTH+1][j]=WALL;
@@ -130,10 +130,36 @@ board_width+1=wall
 
 	for(u8 i=1;i<=BOARD_WIDTH;i++)//bottom
 	{
-		board[i][BOARD_HEIGHT-1]=WALL;
+		board[i][BOARD_HEIGHT+1]=WALL;
 	}
 
-	draw_boundary();
+/*10+2
+[0]
+[1]
+[2]
+[3]
+[4]
+[5]
+[6]
+[7]
+[8]
+[9]
+[10]
+[11] wall
+*/	
+	for(u8 x=0;x<=BOARD_WIDTH+1;x++)//boundary which is only for debug
+	{
+		for(u8 y=1;y<=BOARD_HEIGHT+1;y++)
+		{
+			u8 tileType=0;
+			if(board[x][y]==WALL)tileType=5;
+			VDP_fillTileMapRect(BG_B, 
+				TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,tileType), 
+				x<<1, 
+				y<<1, 
+				2, 2);
+		}
+	}
 
 	spawnCounter=0;
 
@@ -152,7 +178,7 @@ board_width+1=wall
 
 void game_doDraw()
 {
-	draw_board(0,0,BOARD_WIDTH,BOARD_HEIGHT-1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
+	draw_board(0,0,BOARD_WIDTH,BOARD_HEIGHT+1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
 	
 	if(flag_needDrawNext==true)
 	{
@@ -199,12 +225,12 @@ void draw_piece(u8 x, u8 y, u8 blockColor)
 
 void draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
 {
+	if(beginX==0)beginX=1;//we can never draw in [0][j] - that's wall
+
 	for(u8 y=beginY;y<endY;y++)
 	{
 		for(u8 x=beginX;x<=endX;x++)
 		{
-			if(x==0)x=1;
-
 			if(board[x][y]!=EMPTY)
 			{
 				draw_piece(x, y, board[x][y]);
@@ -318,7 +344,7 @@ if(DAS_DOWN_restriction_counter>0)DAS_DOWN_restriction_counter--;
 				{
 					if(game_hasCollided(COLLIDE_DOWN)==true)
 					{
-						boardState=INTOBOARD;//permits 20g
+						boardState=INTOBOARD;
 					}
 				}				
 			}	
@@ -334,6 +360,7 @@ if(DAS_DOWN_restriction_counter>0)DAS_DOWN_restriction_counter--;
 
 	if(INPUT_UP)
 	{
+		//hard drop
 	}
 
 //horizontal
@@ -464,9 +491,9 @@ bool game_hasCollided(u8 direction)
 		{
 			for(u8 collideX=1;collideX<=3;collideX++)
 			{
-				if(faller[collideX][collideY]!=EMPTY && board[collideX+fallerX][collideY+fallerY+1]!=EMPTY)
+				if(faller[collideX][collideY]!=EMPTY && board[collideX+fallerX-2][collideY+fallerY-1]!=EMPTY)
 				{
-					//printf("[DOWN] collis at Y:%d\n",collideY+fallerY);
+					//VDP_drawText("collis down", 4, 26);
 					return true;
 				}
 			}
@@ -480,7 +507,7 @@ bool game_hasCollided(u8 direction)
 		{
 			for(u8 collideY=3;collideY>=1;collideY--)
 			{
-				if(faller[collideX][collideY]!=EMPTY && board[collideX+fallerX-1][collideY+fallerY]!=EMPTY)
+				if(faller[collideX][collideY]!=EMPTY && board[collideX+fallerX-3][collideY+fallerY]!=EMPTY)
 				{
 					//printf("[LEFT] collis at X:%d\n",collideX+fallerX);
 					return true;					
@@ -496,7 +523,7 @@ bool game_hasCollided(u8 direction)
 		{
 			for(u8 collideY=3;collideY>=1;collideY--)
 			{
-				if(faller[collideX][collideY]!=EMPTY && board[collideX+fallerX+1][collideY+fallerY]!=EMPTY)
+				if(faller[collideX][collideY]!=EMPTY && board[collideX+fallerX-1][collideY+fallerY]!=EMPTY)
 				{
 					//printf("[RIGHT] collis at X:%d\n",collideX+fallerX);
 					return true;					
@@ -537,6 +564,7 @@ bool game_hasCollided(u8 direction)
 
 		return false;
 	}
+	/*
 	else if(direction==COLLIDE_SPAWN)
 	{
 		for(u8 collideX=1;collideX<=3;collideX++)
@@ -545,14 +573,14 @@ bool game_hasCollided(u8 direction)
 			{
 				if(faller[collideX][collideY]!=EMPTY && board[collideX+SPAWN_X][collideY+SPAWN_Y]!=EMPTY)
 				{
+					VDP_drawText("collis spawn", 4, 25);
 					return true;
 				}
 			}
 		}
-
 		return false;
 	}
-
+	*/
 	//printf("no collis\n");
 	return false;//should never actually hit
 }
@@ -597,23 +625,6 @@ void game_rotate(bool reverse)
 	}
 }
 
-void draw_boundary()
-{
-	for(u8 x=0;x<=BOARD_WIDTH+1;x++)
-	{
-		for(u8 y=0;y<BOARD_HEIGHT;y++)
-		{
-			u8 tileType=0;
-			if(board[x][y]==WALL)tileType=5;
-			VDP_fillTileMapRect(BG_B, 
-				TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,tileType), 
-				x<<1, 
-				y<<1, 
-				2, 2);
-		}
-	}
-}
-
 void game_intoBoard()
 {
 	//printf("intoBoard. change to spawning\n");
@@ -626,7 +637,7 @@ void game_intoBoard()
 			{
 				//printf("intoBoard at X:%d Y:%d ~ board width:%d height:%d\n",fallerX+intoBoardX,fallerY+intoBoardY,BOARD_WIDTH,BOARD_HEIGHT);
 
-				board[fallerX+intoBoardX][fallerY+intoBoardY]=faller[intoBoardX][intoBoardY];
+				board[fallerX+intoBoardX-2][fallerY+intoBoardY-2]=faller[intoBoardX][intoBoardY];
 			}
 		}
 	}
@@ -733,7 +744,7 @@ void game_destroying()
 
 void game_gameOver()
 {
-	VDP_drawText("game over", 31, 27);
+	VDP_drawText("game over", 4, 27);
 	gameState=GAMEOVER;
 }
 
@@ -970,8 +981,8 @@ void create_next(u8 whichPosition)
 //debug
 	#define DEBUG_COLOR 3
 	nextfaller[whichPosition][2][2]=DEBUG_COLOR;
-	nextfaller[whichPosition][2][1]=DEBUG_COLOR;
-	nextfaller[whichPosition][2][3]=DEBUG_COLOR;
+	nextfaller[whichPosition][1][2]=DEBUG_COLOR;
+	nextfaller[whichPosition][3][2]=DEBUG_COLOR;
 
 /*
 	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);//colors will be 1,2,3
@@ -1033,7 +1044,7 @@ void manage_faller()
 			{
 				if(faller[i][j]!=EMPTY)
 				{
-					SPR_setPosition(fallerSprite[sprIndex],((fallerX+i)<<4),(fallerY+j)<<4);
+					SPR_setPosition(fallerSprite[sprIndex],((fallerX+i-2)<<4),(fallerY+j-2)<<4);
 					SPR_setFrame(fallerSprite[sprIndex], faller[i][j]-1);
 					sprIndex++;
 				}

@@ -49,7 +49,6 @@ void draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY);
 void draw_matches();
 void game_destroying();
 void draw_next();
-void draw_boundary();
 void draw_clearBoard();
 void draw_score();
 
