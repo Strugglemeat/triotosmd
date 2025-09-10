@@ -178,7 +178,7 @@ board_width+1=wall
 
 void game_doDraw()
 {
-	draw_board(0,0,BOARD_WIDTH,BOARD_HEIGHT+1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
+	draw_board(1,0,BOARD_WIDTH,BOARD_HEIGHT+1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
 	
 	if(flag_needDrawNext==true)
 	{
@@ -211,13 +211,13 @@ void game_doDraw()
 void draw_piece(u8 x, u8 y, u8 blockColor)
 {
 	VDP_fillTileMapRectInc(BG_A, 
-		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor-1), 
+		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,((blockColor-1)*2)+1+0xF),
 		x<<1,
 		y<<1,
 		2, 1);
 
 	VDP_fillTileMapRectInc(BG_A, 
-		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor-1+0x8), 
+		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,((blockColor-1)*2)+1+0xF+0x8),
 		x<<1,
 		(y<<1)+1,
 		2, 1);
@@ -978,42 +978,30 @@ void create_next(u8 whichPosition)
 		}
 	}
 
-//debug
-	#define DEBUG_COLOR 3
-	nextfaller[whichPosition][2][2]=DEBUG_COLOR;
-	nextfaller[whichPosition][1][2]=DEBUG_COLOR;
-	nextfaller[whichPosition][3][2]=DEBUG_COLOR;
-
-/*
-	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);//colors will be 1,2,3
+	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 
 	if(spawnTypeCounter==0)
 	{
+		nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+		nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+	}
+	else if(spawnTypeCounter==1)//elbow
+	{
+		nextfaller[whichPosition][2][3]=GetRandomValue(1,NUMBER_OF_COLORS);
+
 		if(GetRandomValue(0,1)==0)
 		{
-			nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
-			nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+			nextfaller[whichPosition][1][3]=GetRandomValue(1,NUMBER_OF_COLORS);
 		}
 		else
 		{
-			nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
-			nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+			nextfaller[whichPosition][3][3]=GetRandomValue(1,NUMBER_OF_COLORS);
 		}
-	}
-	else if(spawnTypeCounter==1)//tall
-	{
-		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
-		nextfaller[whichPosition][2][3]=GetRandomValue(1,NUMBER_OF_COLORS);
-	}
-	else if(spawnTypeCounter==2)//elbow
-	{
-		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
-		nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 	}
 
 	spawnTypeCounter++;
-	if(spawnTypeCounter>2)spawnTypeCounter=0;
-*/
+	if(spawnTypeCounter>1)spawnTypeCounter=0;
+
 }
 
 void shift_next()
