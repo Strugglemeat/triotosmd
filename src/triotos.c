@@ -13,11 +13,7 @@ u8 board[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 bool matches[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 bool gravity[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 
-#define SPAWN_X 3
-#define SPAWN_Y 0
-
 u8 destroyingTimer;
-u8 spawnTypeCounter;
 
 u8 pauseTimer=0;
 bool isPaused=false;
@@ -59,10 +55,10 @@ u8 heldTimeLeft,heldTimeRight,heldTimeDown;
 #define DAS_ADDER_MAX 6
 
 //NEXT QUEUE
-#define NEXT_QUEUE_AMT 3//but we only draw 3
+#define NEXT_QUEUE_AMT 3//but we only draw 2
 u8 nextfaller[NEXT_QUEUE_AMT+1][4][4];
 bool flag_needDrawNext;
-#define NEXT_QUEUE_X 16 //in tiles
+#define NEXT_QUEUE_X 10 //in tiles
 
 //SCORE
 s16 score;
@@ -132,7 +128,6 @@ board_width+1=wall
 	{
 		board[i][BOARD_HEIGHT+1]=WALL;
 	}
-
 /*10+2
 [0]
 [1]
@@ -168,7 +163,7 @@ board_width+1=wall
 
 	for(int i=0;i<3;i++)fallerSprite[i] = SPR_addSprite(&sprite_gameTiles,-16,-16,TILE_ATTR(PAL0, FALSE, FALSE, FALSE));
 
-	spawnTypeCounter=0;
+	//spawnTypeCounter=0;
 
 	score=0;
 
@@ -178,14 +173,11 @@ board_width+1=wall
 
 void game_doDraw()
 {
-	/*
 	if(flag_needDrawNext==true)
 	{
-		//VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X, 4, 3,8);//clear it
 		draw_next();//only needs to be drawn when we spawn!
 		flag_needDrawNext=false;
 	}
-	*/
 
 	if(boardState==SPAWNING || boardState==GRAVITY)
 	{
@@ -243,8 +235,10 @@ void game_spawnPiece()
 {
 	//printf("spawn piece (%d pieces)\n",countHowManyPieces()+3);
 
+	#define SPAWN_X 3
+
 	fallerX=SPAWN_X;
-	fallerY=SPAWN_Y;
+	fallerY=0;
 
 	//printf("fallerX at spawn is %d\n",fallerX);
 
@@ -438,13 +432,13 @@ if(DAS_DOWN_restriction_counter>0)DAS_DOWN_restriction_counter--;
 
 		if(INPUT_B)
 		{
-			if(game_hasCollided(COLLIDE_ROTATE_CW)==false)
-			{
+			//if(game_hasCollided(COLLIDE_ROTATE_CW)==false)
+			//{
 				//printf("pressed B to rotate CW\n");
 
 				game_rotate(false);
 				hasReleased=false;
-			}
+			//}
 		}	
 	}
 }
@@ -533,7 +527,8 @@ bool game_hasCollided(u8 direction)
 
 		return false;
 	}
-	else if(direction==COLLIDE_ROTATE_CW)
+
+	if(direction==COLLIDE_ROTATE_CW)
 	{
 		//printf("attempting rotate CW\n");
 
@@ -564,6 +559,8 @@ bool game_hasCollided(u8 direction)
 
 		return false;
 	}
+	
+
 	/*
 	else if(direction==COLLIDE_SPAWN)
 	{
@@ -649,7 +646,7 @@ void game_matching()
 {
 	//printf("matching start (%d pieces)\n",countHowManyPieces());
 
-	VDP_drawText("game_matching", 6, 23);
+	//VDP_drawText("game_matching", 6, 23);
 	bool hadMatches=false;
 
 	for(u8 j=1;j<=(BOARD_HEIGHT-2);j++)//y - from top to bottom
@@ -774,7 +771,7 @@ void game_checkGravity()
 {
 	//printf("game_checkGravity (with %d pieces)\n",countHowManyPieces());
 	
-	VDP_drawText("game_checkGravity", 7, 24);
+	//VDP_drawText("game_checkGravity", 7, 24);
 
 	bool hadGravity=false;
 
@@ -786,11 +783,10 @@ void game_checkGravity()
 			{
 				if(board[x][y+1]==EMPTY)
 				{
-					VDP_drawText("we had gravity", 8, 25);
+					//VDP_drawText("we had gravity", 8, 25);
 					hadGravity=true;
 					gravity[x][y]=true;						
 				}
-				
 			}
 		}
 	}
@@ -887,7 +883,7 @@ bool doesItReachBottom(u8 x, u8 y)//repurpose for matching
 void game_processGravity()
 {
 	//printf("game_processGravity STARTED with %d pieces\n",countHowManyPieces());
-	VDP_drawText("game_processGravity", 9, 25);
+	//VDP_drawText("game_processGravity", 9, 25);
 
 	for(u8 y=BOARD_HEIGHT;y>0;y--)//from bottom to top
 	{
@@ -954,13 +950,21 @@ u8 GetRandomValue(u8 rangeStart, u8 rangeEnd)
 
 void draw_next()
 {
+	VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X<<1, 4, 6, 16);//clear it
+
 	for(u8 nextPos=1;nextPos<NEXT_QUEUE_AMT;nextPos++)
 	{
 		for(u8 i=1;i<=3;i++)
 		{
 			for(u8 j=1;j<=3;j++)
 			{
-				draw_piece(NEXT_QUEUE_X+i,4+j+((nextPos-2)<<2)+nextPos, nextfaller[nextPos][i][j]);
+				if(nextfaller[nextPos][i][j]!=EMPTY)
+				{
+					draw_piece(
+						NEXT_QUEUE_X+i,
+						4+j+((nextPos-2)<<2)+nextPos, 
+						nextfaller[nextPos][i][j]);
+				}
 			}
 		}
 	}
@@ -978,12 +982,12 @@ void create_next(u8 whichPosition)
 
 	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 
-	if(spawnTypeCounter==0)
+	if(GetRandomValue(0,1)==0)//tall
 	{
 		nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 		nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 	}
-	else if(spawnTypeCounter==1)//elbow
+	else//elbow
 	{
 		nextfaller[whichPosition][2][3]=GetRandomValue(1,NUMBER_OF_COLORS);
 
@@ -996,9 +1000,6 @@ void create_next(u8 whichPosition)
 			nextfaller[whichPosition][3][3]=GetRandomValue(1,NUMBER_OF_COLORS);
 		}
 	}
-
-	spawnTypeCounter++;
-	if(spawnTypeCounter>1)spawnTypeCounter=0;
 
 }
 
