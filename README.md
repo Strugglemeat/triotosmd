@@ -1,6 +1,10 @@
 # triotos md
 a recreation of Triotos DX from Game Center CX 2
 
+graphics conversion by Mizuno
+
+coding by bankbank
+
 gameplay video: https://www.youtube.com/watch?v=5HMEuE-5oc4
 
 VS gameplay video: https://www.youtube.com/watch?v=hwzdvZE9MUU

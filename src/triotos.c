@@ -178,21 +178,21 @@ board_width+1=wall
 
 void game_doDraw()
 {
-	draw_board(1,0,BOARD_WIDTH,BOARD_HEIGHT+1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
-	
+	/*
 	if(flag_needDrawNext==true)
 	{
 		//VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X, 4, 3,8);//clear it
 		draw_next();//only needs to be drawn when we spawn!
 		flag_needDrawNext=false;
 	}
+	*/
 
-	/*
 	if(boardState==SPAWNING || boardState==GRAVITY)
 	{
 		draw_clearBoard();
-		draw_board(2,0,BOARD_WIDTH-1,BOARD_HEIGHT-1);
+		draw_board(1,0,BOARD_WIDTH,BOARD_HEIGHT+1);
 	}
+	/*
 	else if(boardState==INTOBOARD)
 	{
 		draw_board((fallerX-1)<<1,(fallerY-1)<<1,(fallerX+3)<<1,(fallerY+3)<<1);
@@ -427,13 +427,13 @@ if(DAS_DOWN_restriction_counter>0)DAS_DOWN_restriction_counter--;
 	{
 		if(INPUT_A || INPUT_C)
 		{
-			if(game_hasCollided(COLLIDE_ROTATE_CCW)==false)
-			{
+			//if(game_hasCollided(COLLIDE_ROTATE_CCW)==false)
+			//{
 				//printf("pressed A to rotate CCW\n");
 
 				game_rotate(true);
 				hasReleased=false;
-			}
+			//}
 		}
 
 		if(INPUT_B)
@@ -1015,7 +1015,7 @@ void shift_next()
 
 void draw_clearBoard()
 {
-	VDP_clearTileMapRect(BG_A, 2, 0, (BOARD_WIDTH-2)<<1,(BOARD_HEIGHT-2)<<1);
+	VDP_clearTileMapRect(BG_A, 2, 0, (BOARD_WIDTH-0)<<1,(BOARD_HEIGHT-0)<<1);
 }
 
 void manage_faller()
