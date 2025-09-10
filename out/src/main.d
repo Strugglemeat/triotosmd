@@ -16,4 +16,4 @@ out/src/main.o: src/main.c src/defs.h /sgdk/inc/genesis.h \
  /sgdk/inc/task.h /sgdk/inc/task_cst.h /sgdk/inc/ext/flash-save/flash.h \
  /sgdk/inc/types.h /sgdk/inc/ext/flash-save/saveman.h \
  /sgdk/inc/ext/console.h /sgdk/inc/config.h /sgdk/inc/string.h \
- /sgdk/inc/maths.h /sgdk/inc/dma.h res/gfx.h src/triotos_defs.h
+ /sgdk/inc/maths.h /sgdk/inc/dma.h res/gfx.h

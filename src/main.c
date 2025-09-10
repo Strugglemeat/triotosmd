@@ -1,5 +1,4 @@
 #include "defs.h"
-#include "triotos_defs.h"
 
 u8 whichScreen=GAME;
 char debug_string[20] = "";

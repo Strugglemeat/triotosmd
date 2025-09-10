@@ -3,9 +3,6 @@
 #define BOARD_WIDTH 5
 #define BOARD_HEIGHT 10
 
-#define GRID_INSET_X 0
-#define GRID_INSET_Y 0//-1
-
 #define LANDING_TIMER_AMOUNT 120 //2 seconds
 #define NATURAL_FALLING_TIMER_AMOUNT 120 //2 seconds
 #define NATURAL_FALLING_LOWER_LIMIT 20

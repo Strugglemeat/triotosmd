@@ -15,7 +15,7 @@ u8 board[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 bool matches[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 bool gravity[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 
-#define SPAWN_X 2
+#define SPAWN_X 1
 #define SPAWN_Y 0
 
 u8 destroyingTimer;
@@ -156,6 +156,8 @@ board_width+1=wall
 
 void game_doDraw()
 {
+	draw_board(0,0,BOARD_WIDTH,BOARD_HEIGHT-1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
+	/*
 	if(flag_created_needsdraw==true)
 	{
 		//VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X, 4, 3,8);//clear it
@@ -177,6 +179,7 @@ void game_doDraw()
 		draw_board(2,0,BOARD_WIDTH-1,BOARD_HEIGHT-1);
 		draw_matches();
 	}
+	*/
 
 	//draw_score();
 }
@@ -191,27 +194,31 @@ void set_faller()
 		{
 			if(faller[i][j]!=EMPTY)
 			{
-				SPR_setPosition(fallerSprite[sprIndex],(fallerX+i)<<4,(fallerY+j)<<4);
+				SPR_setPosition(fallerSprite[sprIndex],((fallerX+i)<<4),(fallerY+j)<<4);
 				SPR_setFrame(fallerSprite[sprIndex], faller[i][j]);
 				sprIndex++;
 			}
 		}
 	}
-
-	//if(sprIndex==2)SPR_setPosition(fallerSprite[2],-16,-16);
 }
 
 void draw_piece(u8 x, u8 y, u8 blockColor)
 {
-	VDP_fillTileMapRect(BG_A, TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,blockColor), (x<<1)+GRID_INSET_X, (y<<1)+GRID_INSET_Y, 2, 2);
+	VDP_fillTileMapRectInc(BG_A, 
+		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor), 
+		x<<1,
+		y<<1,
+		2, 1);
 }
 
 void draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
 {
 	for(u8 y=beginY;y<endY;y++)
 	{
-		for(u8 x=beginX;x<endX;x++)
+		for(u8 x=beginX;x<=endX;x++)
 		{
+			if(x==0)x=1;
+
 			if(board[x][y]!=EMPTY)
 			{
 				draw_piece(x, y, board[x][y]);
@@ -609,11 +616,13 @@ void draw_boundary()
 	{
 		for(u8 y=0;y<BOARD_HEIGHT;y++)
 		{
-			if(board[x][y]==WALL)
-			{
-				//draw_piece(x, y, 5);
-				VDP_fillTileMapRect(BG_B, TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,5), (x<<1)+GRID_INSET_X, (y<<1)+GRID_INSET_Y, 2, 2);
-			}
+			u8 tileType=0;
+			if(board[x][y]==WALL)tileType=5;
+			VDP_fillTileMapRect(BG_B, 
+				TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,tileType), 
+				x<<1, 
+				y<<1, 
+				2, 2);
 		}
 	}
 }
