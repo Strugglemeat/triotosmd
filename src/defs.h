@@ -12,3 +12,8 @@ enum screens{
 	OPTION,
 	EXIT
 };
+
+//prototypes
+void menu_loop();
+void game_loop();
+void option_loop();

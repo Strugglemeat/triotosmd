@@ -5,8 +5,6 @@
 u8 gameState=INITIALIZE;
 u8 boardState;
 
-bool twentyg_enabled=false;
-
 u8 fallerX,fallerY;
 u8 faller[4][4];//1 index
 Sprite* fallerSprite[3];
@@ -27,7 +25,7 @@ bool isPaused=false;
 u8 matchChainCounter;
 
 u8 spawnCounter;
-u8 currentNumberOfColors;
+#define NUMBER_OF_COLORS 3
 
 //INPUTS
 bool INPUT_UP;
@@ -125,7 +123,6 @@ void game_initialize()
 0=wall
 board_width+1=wall
 */
-
 	for(u8 j=0;j<BOARD_HEIGHT;j++)//sides
 	{
 		board[0][j]=WALL;
@@ -139,7 +136,6 @@ board_width+1=wall
 
 	draw_boundary();
 
-	currentNumberOfColors=3;
 	spawnCounter=0;
 
 	for(int i=1;i<NEXT_QUEUE_AMT;i++)create_next(i);
@@ -195,7 +191,7 @@ void set_faller()
 			if(faller[i][j]!=EMPTY)
 			{
 				SPR_setPosition(fallerSprite[sprIndex],((fallerX+i)<<4),(fallerY+j)<<4);
-				SPR_setFrame(fallerSprite[sprIndex], faller[i][j]);
+				SPR_setFrame(fallerSprite[sprIndex], faller[i][j]-1);
 				sprIndex++;
 			}
 		}
@@ -208,6 +204,12 @@ void draw_piece(u8 x, u8 y, u8 blockColor)
 		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor), 
 		x<<1,
 		y<<1,
+		2, 1);
+
+	VDP_fillTileMapRectInc(BG_A, 
+		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor+0x8), 
+		x<<1,
+		(y<<1)+1,
 		2, 1);
 }
 
@@ -980,34 +982,34 @@ void create_next(u8 whichPosition)
 		}
 	}
 
-	nextfaller[whichPosition][2][2]=GetRandomValue(1,currentNumberOfColors);//core piece
+	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);//colors will be 1,2,3
 
 	if(spawnTypeCounter==0)
 	{
 		if(GetRandomValue(0,1)==0)
 		{
-			nextfaller[whichPosition][1][2]=GetRandomValue(1,currentNumberOfColors);
-			nextfaller[whichPosition][3][2]=GetRandomValue(1,currentNumberOfColors);
+			nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+			nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 		}
 		else
 		{
-			nextfaller[whichPosition][2][1]=GetRandomValue(1,currentNumberOfColors);
-			nextfaller[whichPosition][1][2]=GetRandomValue(1,currentNumberOfColors);
+			nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
+			nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 		}
 	}
 	else if(spawnTypeCounter==1)//tall
 	{
-		nextfaller[whichPosition][2][1]=GetRandomValue(1,currentNumberOfColors);
-		nextfaller[whichPosition][2][3]=GetRandomValue(1,currentNumberOfColors);
+		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
+		nextfaller[whichPosition][2][3]=GetRandomValue(1,NUMBER_OF_COLORS);
 	}
 	else if(spawnTypeCounter==2)//elbow
 	{
-		nextfaller[whichPosition][2][1]=GetRandomValue(1,currentNumberOfColors);
-		nextfaller[whichPosition][3][2]=GetRandomValue(1,currentNumberOfColors);
+		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
+		nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 	}
 	else if(spawnTypeCounter==3)//short
 	{
-		nextfaller[whichPosition][2][1]=GetRandomValue(1,currentNumberOfColors);
+		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
 	}
 
 	spawnTypeCounter++;
@@ -1038,7 +1040,7 @@ void manage_faller()
 	{
 		set_faller();
 	}
-	else
+	else //hide the faller if we aren't falling or landing
 	{
 		for(u8 i=0;i<3;i++)
 		{

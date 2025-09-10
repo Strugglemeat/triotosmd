@@ -95,7 +95,6 @@ enum collisionDirections
 enum drawPieceTypes
 {
 	NORMAL,
-	GHOST,
 	DISAPPEAR,
 	WALL=0xFF
 };
