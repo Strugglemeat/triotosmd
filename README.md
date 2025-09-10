@@ -11,7 +11,7 @@ VS gameplay video: https://www.youtube.com/watch?v=hwzdvZE9MUU
 
 gameplay description: https://tetrisconcept.net/threads/triotos.2394/
 
-Pico-8 port: https://www.lexaloffle.com/bbs/?tid=3996
+Pico-8 port: https://www.lexaloffle.com/bbs/?tid=3996 (inaccurate rotation)
 
 # todo
 
