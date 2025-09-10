@@ -27,7 +27,7 @@ void game_spawnPiece();
 void game_falling();
 bool game_hasCollided(u8 direction);
 void game_intoBoard();
-void game_rotate(bool reverse);
+void game_rotate(bool isCCW);
 
 void game_checkGravity();
 void game_processGravity();

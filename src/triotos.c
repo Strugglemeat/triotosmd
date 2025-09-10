@@ -19,9 +19,7 @@ u8 pauseTimer=0;
 bool isPaused=false;
 
 u8 matchChainCounter;
-
 u8 spawnCounter;
-#define NUMBER_OF_COLORS 3
 
 //INPUTS
 bool INPUT_UP;
@@ -87,9 +85,9 @@ void game_loop()
 		else if(boardState==PROCESSGRAVITY)game_processGravity();
 	}
 
-	manage_faller();
+	if(boardState==FALLING || boardState==LANDING)manage_faller();
 	
-	sprintf(debug_string,"%ld.%d.%d", SYS_getFPS(),fallerX,fallerY);
+	sprintf(debug_string,"FPS - %ld", SYS_getFPS());
 	sprintf(score_string,"%d",score);
 
 //VDP BEGIN
@@ -254,13 +252,13 @@ void game_spawnPiece()
 
 	create_next(NEXT_QUEUE_AMT-1);
 	flag_needDrawNext=true;
-
+/*
 	if(game_hasCollided(COLLIDE_SPAWN)==true)
 	{
 		game_gameOver();
 		//return;
 	}
-
+*/
 	spawn_allowedToDown=false;//can't hold DOWN button to continuously pull down through spawns
 
 	naturalFallingTimer=NATURAL_FALLING_TIMER_AMOUNT-spawnCounter;
@@ -560,7 +558,6 @@ bool game_hasCollided(u8 direction)
 		return false;
 	}
 	
-
 	/*
 	else if(direction==COLLIDE_SPAWN)
 	{
@@ -582,9 +579,9 @@ bool game_hasCollided(u8 direction)
 	return false;//should never actually hit
 }
 
-void game_rotate(bool reverse)
+void game_rotate(bool isCCW)
 {
-	u8 tempfaller[4][4];
+	u8 tempfaller[4][4];//={0};
 
 	for (u8 tempfallerX=1;tempfallerX<=3;tempfallerX++)
 	{
@@ -594,10 +591,8 @@ void game_rotate(bool reverse)
 		}
 	}
 
-	if(reverse==true)
+	if(isCCW)
 	{
-		//printf("ROTATE CCW\n");
-
 		faller[1][1]=tempfaller[3][1];
         faller[2][1]=tempfaller[3][2];
         faller[3][1]=tempfaller[3][3];
@@ -607,10 +602,8 @@ void game_rotate(bool reverse)
         faller[2][3]=tempfaller[1][2];
         faller[3][3]=tempfaller[1][3];
 	}
-	else if(reverse==false)
+	else//ROTATE CW
 	{
-		//printf("ROTATE CW\n");
-
         faller[1][1]=tempfaller[1][3];
         faller[2][1]=tempfaller[1][2];
         faller[3][1]=tempfaller[1][1];
@@ -619,6 +612,44 @@ void game_rotate(bool reverse)
         faller[1][3]=tempfaller[3][3];
         faller[2][3]=tempfaller[3][2];
         faller[3][3]=tempfaller[3][1];
+	}
+
+	if( (faller[2][1]!=EMPTY && faller[2][3]!=EMPTY) || (faller[1][2]!=EMPTY && faller[3][2]!=EMPTY) )
+	{
+		//it was a long piece
+		return;
+	}
+	else
+	{
+		if(faller[1][1]==EMPTY && faller[2][1]==EMPTY && faller[3][1]==EMPTY)//top row empty
+		{
+			faller[1][1]=faller[1][2];//copy upwards
+			faller[2][1]=faller[2][2];
+			faller[3][1]=faller[3][2];
+
+			faller[1][2]=faller[1][3];
+			faller[2][2]=faller[2][3];
+			faller[3][2]=faller[3][3];
+
+			faller[1][3]=EMPTY;
+			faller[2][3]=EMPTY;
+			faller[3][3]=EMPTY;
+			return;
+		}
+		if(faller[1][3]==EMPTY && faller[2][3]==EMPTY && faller[3][3]==EMPTY)//bottom row empty
+		{
+			faller[1][3]=faller[1][2];//copy downwards
+			faller[2][3]=faller[2][2];
+			faller[3][3]=faller[3][2];
+
+			faller[1][2]=faller[1][1];
+			faller[2][2]=faller[2][1];
+			faller[3][2]=faller[3][1];
+
+			faller[1][1]=EMPTY;
+			faller[2][1]=EMPTY;
+			faller[3][1]=EMPTY;
+		}
 	}
 }
 
@@ -980,27 +1011,26 @@ void create_next(u8 whichPosition)
 		}
 	}
 
-	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+	#define NUMBER_OF_COLORS 3
+
+	u8 color1=GetRandomValue(1,NUMBER_OF_COLORS);
+	u8 color2=GetRandomValue(1,NUMBER_OF_COLORS);
+	u8 color3;
+	if(GetRandomValue(0,1)==1)color3=color1;
+	else color3=color2;
+
+	nextfaller[whichPosition][2][2]=color1;
 
 	if(GetRandomValue(0,1)==0)//tall
 	{
-		nextfaller[whichPosition][1][2]=GetRandomValue(1,NUMBER_OF_COLORS);
-		nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
+		nextfaller[whichPosition][1][2]=color2;
+		nextfaller[whichPosition][3][2]=color3;
 	}
 	else//elbow
 	{
-		nextfaller[whichPosition][2][3]=GetRandomValue(1,NUMBER_OF_COLORS);
-
-		if(GetRandomValue(0,1)==0)
-		{
-			nextfaller[whichPosition][1][3]=GetRandomValue(1,NUMBER_OF_COLORS);
-		}
-		else
-		{
-			nextfaller[whichPosition][3][3]=GetRandomValue(1,NUMBER_OF_COLORS);
-		}
+		nextfaller[whichPosition][2][3]=color2;
+		nextfaller[whichPosition][3][3]=color3;
 	}
-
 }
 
 void shift_next()
@@ -1021,28 +1051,19 @@ void draw_clearBoard()
 
 void manage_faller()
 {
-	if(boardState==FALLING || boardState==LANDING)
-	{
-		int sprIndex=0;
+	int sprIndex=0;
 
-		for(u8 i=1;i<=3;i++)
-		{
-			for(u8 j=1;j<=3;j++)
-			{
-				if(faller[i][j]!=EMPTY)
-				{
-					SPR_setPosition(fallerSprite[sprIndex],((fallerX+i-2)<<4),(fallerY+j-2)<<4);
-					SPR_setFrame(fallerSprite[sprIndex], faller[i][j]-1);
-					sprIndex++;
-				}
-			}
-		}
-	}
-	else //hide the faller if we aren't falling or landing
+	for(u8 i=1;i<=3;i++)
 	{
-		for(u8 i=0;i<3;i++)
+		for(u8 j=1;j<=3;j++)
 		{
-			SPR_setPosition(fallerSprite[i],-16,16);
+			if(faller[i][j]!=EMPTY)
+			{
+				SPR_setPosition(fallerSprite[sprIndex],((fallerX+i-2)<<4),(fallerY+j-2)<<4);
+				SPR_setFrame(fallerSprite[sprIndex], faller[i][j]-1);
+				sprIndex++;
+				//if(sprIndex>2)return;
+			}
 		}
 	}
 }
