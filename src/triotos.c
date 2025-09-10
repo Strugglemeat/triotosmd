@@ -13,7 +13,7 @@ u8 board[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 bool matches[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 bool gravity[BOARD_WIDTH+2][BOARD_HEIGHT+2];
 
-#define SPAWN_X 1
+#define SPAWN_X 3
 #define SPAWN_Y 0
 
 u8 destroyingTimer;
@@ -61,7 +61,7 @@ u8 heldTimeLeft,heldTimeRight,heldTimeDown;
 //NEXT QUEUE
 #define NEXT_QUEUE_AMT 3//but we only draw 3
 u8 nextfaller[NEXT_QUEUE_AMT+1][4][4];
-bool flag_created_needsdraw;
+bool flag_needDrawNext;
 #define NEXT_QUEUE_X 16 //in tiles
 
 //SCORE
@@ -92,14 +92,13 @@ void game_loop()
 	}
 
 	manage_faller();
-
-	SPR_update();
 	
-	sprintf(debug_string,"FPS:%ld", SYS_getFPS());
+	sprintf(debug_string,"%ld.%d.%d", SYS_getFPS(),fallerX,fallerY);
 	sprintf(score_string,"%d",score);
 
 //VDP BEGIN
 	SYS_doVBlankProcess();
+	SPR_update();
 	game_doDraw();
 
 	VDP_drawText(debug_string,DEBUG_STR_X,26);
@@ -139,6 +138,7 @@ board_width+1=wall
 	spawnCounter=0;
 
 	for(int i=1;i<NEXT_QUEUE_AMT;i++)create_next(i);
+	flag_needDrawNext=true;
 
 	for(int i=0;i<3;i++)fallerSprite[i] = SPR_addSprite(&sprite_gameTiles,-16,-16,TILE_ATTR(PAL0, FALSE, FALSE, FALSE));
 
@@ -153,13 +153,15 @@ board_width+1=wall
 void game_doDraw()
 {
 	draw_board(0,0,BOARD_WIDTH,BOARD_HEIGHT-1);//draw_board(u8 beginX, u8 beginY, u8 endX,  u8 endY)
-	/*
-	if(flag_created_needsdraw==true)
+	
+	if(flag_needDrawNext==true)
 	{
 		//VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X, 4, 3,8);//clear it
 		draw_next();//only needs to be drawn when we spawn!
+		flag_needDrawNext=false;
 	}
 
+	/*
 	if(boardState==SPAWNING || boardState==GRAVITY)
 	{
 		draw_clearBoard();
@@ -180,34 +182,16 @@ void game_doDraw()
 	//draw_score();
 }
 
-void set_faller()
-{
-	int sprIndex=0;
-
-	for(u8 i=1;i<=3;i++)
-	{
-		for(u8 j=1;j<=3;j++)
-		{
-			if(faller[i][j]!=EMPTY)
-			{
-				SPR_setPosition(fallerSprite[sprIndex],((fallerX+i)<<4),(fallerY+j)<<4);
-				SPR_setFrame(fallerSprite[sprIndex], faller[i][j]-1);
-				sprIndex++;
-			}
-		}
-	}
-}
-
 void draw_piece(u8 x, u8 y, u8 blockColor)
 {
 	VDP_fillTileMapRectInc(BG_A, 
-		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor), 
+		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor-1), 
 		x<<1,
 		y<<1,
 		2, 1);
 
 	VDP_fillTileMapRectInc(BG_A, 
-		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor+0x8), 
+		TILE_ATTR_FULL(PAL0,FALSE,FALSE,FALSE,0xF+blockColor-1+0x8), 
 		x<<1,
 		(y<<1)+1,
 		2, 1);
@@ -249,6 +233,7 @@ void game_spawnPiece()
 	shift_next();
 
 	create_next(NEXT_QUEUE_AMT-1);
+	flag_needDrawNext=true;
 
 	if(game_hasCollided(COLLIDE_SPAWN)==true)
 	{
@@ -752,6 +737,7 @@ void game_gameOver()
 	gameState=GAMEOVER;
 }
 
+/*
 u8 countHowManyPieces()
 {
 	u8 debug_numPieces=0;
@@ -771,6 +757,7 @@ u8 countHowManyPieces()
 
 	return debug_numPieces;
 }
+*/
 
 void game_checkGravity()
 {
@@ -968,8 +955,6 @@ void draw_next()
 			}
 		}
 	}
-
-	flag_created_needsdraw=false;
 }
 
 void create_next(u8 whichPosition)
@@ -982,6 +967,13 @@ void create_next(u8 whichPosition)
 		}
 	}
 
+//debug
+	#define DEBUG_COLOR 3
+	nextfaller[whichPosition][2][2]=DEBUG_COLOR;
+	nextfaller[whichPosition][2][1]=DEBUG_COLOR;
+	nextfaller[whichPosition][2][3]=DEBUG_COLOR;
+
+/*
 	nextfaller[whichPosition][2][2]=GetRandomValue(1,NUMBER_OF_COLORS);//colors will be 1,2,3
 
 	if(spawnTypeCounter==0)
@@ -1007,15 +999,10 @@ void create_next(u8 whichPosition)
 		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
 		nextfaller[whichPosition][3][2]=GetRandomValue(1,NUMBER_OF_COLORS);
 	}
-	else if(spawnTypeCounter==3)//short
-	{
-		nextfaller[whichPosition][2][1]=GetRandomValue(1,NUMBER_OF_COLORS);
-	}
 
 	spawnTypeCounter++;
-	if(spawnTypeCounter>3)spawnTypeCounter=0;
-
-	flag_created_needsdraw=true;
+	if(spawnTypeCounter>2)spawnTypeCounter=0;
+*/
 }
 
 void shift_next()
@@ -1038,7 +1025,20 @@ void manage_faller()
 {
 	if(boardState==FALLING || boardState==LANDING)
 	{
-		set_faller();
+		int sprIndex=0;
+
+		for(u8 i=1;i<=3;i++)
+		{
+			for(u8 j=1;j<=3;j++)
+			{
+				if(faller[i][j]!=EMPTY)
+				{
+					SPR_setPosition(fallerSprite[sprIndex],((fallerX+i)<<4),(fallerY+j)<<4);
+					SPR_setFrame(fallerSprite[sprIndex], faller[i][j]-1);
+					sprIndex++;
+				}
+			}
+		}
 	}
 	else //hide the faller if we aren't falling or landing
 	{

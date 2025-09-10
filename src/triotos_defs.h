@@ -54,7 +54,6 @@ void draw_clearBoard();
 void draw_score();
 
 //FALLER
-void set_faller();
 void manage_faller();
 
 //DEBUG
