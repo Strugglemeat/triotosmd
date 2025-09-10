@@ -1,7 +1,7 @@
 # triotos md
 a recreation of Triotos DX from Game Center CX 2
 
-graphics conversion by Mizuno
+graphics conversion & planning by Mizuno
 
 coding by bankbank
 
@@ -14,3 +14,5 @@ gameplay description: https://tetrisconcept.net/threads/triotos.2394/
 Pico-8 port: https://www.lexaloffle.com/bbs/?tid=3996
 
 # todo
+
+refactor to utilize player struct to permit VS
