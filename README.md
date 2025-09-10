@@ -17,8 +17,8 @@ Pico-8 port: https://www.lexaloffle.com/bbs/?tid=3996 (inaccurate rotation)
 
 refactor to utilize player struct to permit VS
 
-wildcard pieces in next falling piece (spawned by a combo of 6)
+wildcard pieces in next falling piece (spawned by a combo of 6, 7, and 8)
 
-wildcard pieces falling from top (spawned by a combo of 9)
+wildcard pieces falling from top (spawned by a combo of 9+)
 
 generate the entire next set pool at the start instead of dynamically
