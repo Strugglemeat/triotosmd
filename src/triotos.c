@@ -85,9 +85,9 @@ void game_loop()
 		if(boardState==SPAWNING)game_spawnPiece();
 		else if(boardState==FALLING || boardState==LANDING)game_falling();
 		else if(boardState==INTOBOARD)game_intoBoard();
+		else if(boardState==GRAVITY)game_checkGravity();
 		else if(boardState==MATCHING)game_matching();
 		else if(boardState==DESTROYING)game_destroying();
-		else if(boardState==GRAVITY)game_checkGravity();
 		else if(boardState==PROCESSGRAVITY)game_processGravity();
 	}
 
@@ -642,14 +642,14 @@ void game_intoBoard()
 		}
 	}
 
-
-	boardState=MATCHING;
+	boardState=GRAVITY;
 }
 
 void game_matching()
 {
 	//printf("matching start (%d pieces)\n",countHowManyPieces());
 
+	VDP_drawText("game_matching", 6, 23);
 	bool hadMatches=false;
 
 	for(u8 j=1;j<=(BOARD_HEIGHT-2);j++)//y - from top to bottom
@@ -774,37 +774,35 @@ void game_checkGravity()
 {
 	//printf("game_checkGravity (with %d pieces)\n",countHowManyPieces());
 	
+	VDP_drawText("game_checkGravity", 7, 24);
+
 	bool hadGravity=false;
 
-	for(u8 y=(BOARD_HEIGHT-2);y>0;y--)//y - from bottom to top
+	for(u8 y=BOARD_HEIGHT-1;y>0;y--)//y - from bottom to top
 	{
-		for(u8 x=2;x<=(BOARD_WIDTH-3);x++)//x - from left to right
+		for(u8 x=1;x<=BOARD_WIDTH;x++)//x - from left to right
 		{
 			if(board[x][y]!=EMPTY)
 			{
-				if(!doesItReachBottom(x,y))
+				if(board[x][y+1]==EMPTY)
 				{
-					//printf("game_checkGravity: didn't hit bot at [X:%d Y:%d]\n",x,y);
-
-					if(y<(BOARD_HEIGHT-2))
-					{
-						hadGravity=true;
-						gravity[x][y]=true;						
-					}
+					VDP_drawText("we had gravity", 8, 25);
+					hadGravity=true;
+					gravity[x][y]=true;						
 				}
+				
 			}
 		}
 	}
 
 //change board state depending on outcome (no more gravity or further gravity to check)
-
-	if(hadGravity==false)boardState=MATCHING;
-	else if(hadGravity==true)boardState=PROCESSGRAVITY;
+	if(hadGravity==true)boardState=PROCESSGRAVITY;
+	else if(hadGravity==false)boardState=MATCHING;
 
 	//printf("game_checkGravity finished. now with %d pieces\n",countHowManyPieces());
 }
 
-bool doesItReachBottom(u8 x, u8 y)
+bool doesItReachBottom(u8 x, u8 y)//repurpose for matching
 {
 	//printf("doesItReachBottom: [%d,%d]\n",x,y);
 
@@ -889,11 +887,11 @@ bool doesItReachBottom(u8 x, u8 y)
 void game_processGravity()
 {
 	//printf("game_processGravity STARTED with %d pieces\n",countHowManyPieces());
+	VDP_drawText("game_processGravity", 9, 25);
 
-	//for(u8 j=0;j<(BOARD_HEIGHT-2);j++)//from top to bottom
-	for(u8 y=(BOARD_HEIGHT-2);y>0;y--)//from bottom to top
+	for(u8 y=BOARD_HEIGHT;y>0;y--)//from bottom to top
 	{
-		for(u8 x=1;x<=(BOARD_WIDTH-3);x++)//from left to right
+		for(u8 x=1;x<=BOARD_WIDTH;x++)//from left to right
 		{
 			if(gravity[x][y]==true)
 			{
