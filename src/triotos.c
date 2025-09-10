@@ -950,7 +950,7 @@ u8 GetRandomValue(u8 rangeStart, u8 rangeEnd)
 
 void draw_next()
 {
-	VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X<<1, 4, 6, 16);//clear it
+	VDP_clearTileMapRect(BG_A, NEXT_QUEUE_X<<1, 4, 10, 20);//clear it
 
 	for(u8 nextPos=1;nextPos<NEXT_QUEUE_AMT;nextPos++)
 	{
