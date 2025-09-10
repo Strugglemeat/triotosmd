@@ -16,3 +16,7 @@ Pico-8 port: https://www.lexaloffle.com/bbs/?tid=3996
 # todo
 
 refactor to utilize player struct to permit VS
+
+wildcard pieces in next falling piece (spawned by a combo of 6)
+
+wildcard pieces falling from top (spawned by a combo of 9)
